@@ -1,11 +1,13 @@
+'use strict';
+/* global cuid $ */
 const store = {
   items: [
-    { id: cuid(), name: 'apples', checked: false },
-    { id: cuid(), name: 'oranges', checked: false },
-    { id: cuid(), name: 'milk', checked: true },
-    { id: cuid(), name: 'bread', checked: false }
+    { id: cuid(), name: 'apples', checked: false, isEdit: false },
+    { id: cuid(), name: 'oranges', checked: false, isEdit: false },
+    { id: cuid(), name: 'milk', checked: true, isEdit: false },
+    { id: cuid(), name: 'bread', checked: false, isEdit: false }
   ],
-  hideCheckedItems: false
+  hideCheckedItems: false,
 };
 
 const generateItemElement = function (item) {
@@ -14,6 +16,10 @@ const generateItemElement = function (item) {
     itemTitle = `
      <span class='shopping-item'>${item.name}</span>
     `;
+  }
+
+  if (item.isEdit) {
+    itemTitle = '<input type="text" class="editInput">';
   }
 
   return `
@@ -25,6 +31,9 @@ const generateItemElement = function (item) {
         </button>
         <button class='shopping-item-delete js-item-delete'>
           <span class='button-label'>delete</span>
+        </button>
+        <button class='shopping-item-edit'>
+          <span class='button-label'>Edit</span>
         </button>
       </div>
     </li>`;
@@ -81,6 +90,27 @@ const toggleCheckedForListItem = function (id) {
   foundItem.checked = !foundItem.checked;
 };
 
+const toggleEditForListItem = function (id) {
+  const foundItem = store.items.find(item => item.id === id);
+  foundItem.isEdit = !foundItem.isEdit;
+};
+
+const passDataFunc = function (item, id) {
+  item.name = $('.editInput').val();
+  return item;
+};
+
+const handleItemEditClicked = function () {
+  $('.js-shopping-list').on('click', '.shopping-item-edit', function (e) {
+    const id = getItemIdFromElement(e.currentTarget);
+    const foundItem = store.items.find(item => item.id === id);
+    passDataFunc(foundItem, id);
+    toggleEditForListItem(id);
+    render();
+  });
+};
+
+
 const handleItemCheckClicked = function () {
   $('.js-shopping-list').on('click', '.js-item-toggle', event => {
     const id = getItemIdFromElement(event.currentTarget);
@@ -88,6 +118,8 @@ const handleItemCheckClicked = function () {
     render();
   });
 };
+
+
 
 const getItemIdFromElement = function (item) {
   return $(item)
@@ -160,6 +192,8 @@ const handleShoppingList = function () {
   handleItemCheckClicked();
   handleDeleteItemClicked();
   handleToggleFilterClick();
+  handleItemEditClicked();
+
 };
 
 // when the page loads, call `handleShoppingList`
